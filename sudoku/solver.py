@@ -1,3 +1,5 @@
+import util
+
 demo_board = [
     [3, 0, 6, 5, 0, 8, 4, 0, 0],
     [5, 2, 0, 0, 0, 0, 0, 0, 0],
@@ -10,93 +12,78 @@ demo_board = [
     [0, 0, 5, 2, 0, 6, 3, 0, 0]
 ]
 
-def is_valid(board: list[list[int]]):
+def solveSudoku(board) -> bool:
+    # find the first empty postition in the board
+    for column_index in range(9):
+        for row_index in range(9):
+            # print(column_index, row_index)
+            # we have reached final board position, and it is not 0 -> sudoku solved !! :)
+            if column_index == row_index == 8 and board[column_index][row_index] != 0:
+                util.print_sudoku(board)
+                return True
+
+            # empty position found
+            if board[column_index][row_index] == 0:
+                # test all nums in this position
+                for test_num in range(1, 10):
+                    # if test_num is valid in this position, continue algorithm
+                    if convert_indices_to_list(board, column_index, row_index, test_num):
+                        solveSudoku(board)
+    
+    return False
+
+def is_list_valid(nums) -> bool:
     """
-    Checks if the given matrix is valid. This includes checking the 
-    dimensions, validity of rows, columns, boxes and diagonals, as well
-    as the values the board holds.
+    Returns if a list of numbers contains any number expect 0 more than once.
+    If yes, return false, if not return true.
+    Additionally checks for invalid entries.
     """
-    # define return value
-    valid : bool = True
+    occurence_map = {i : 0 for i in range(1, 10)}
 
-    # check the dimensions are 9x9
-    valid = valid and len(board) == 9
-    valid = valid and all(len(row) == 9 for row in board)
-
-    # check rows
-    valid = valid and all(check_row(row) for row in board)
-
-    # check columns
-    valid = valid and check_columns()
-
-def check_row(row: list[int]) -> bool:
-    """
-    Checks if the given row of a sudoku is valid. A valid row contains no more 
-    than 1 of each digit excluding 0.
-    """
-    # map of digit to number of occurences
-    occurence_map : dict[int, int] = {i : 0 for i in range(1, 10)}
-
-    for num in row:
-        # we dont care about empty spaces
+    for num in nums:    
+        # ignore 0
         if num == 0:
             continue
 
-        # if we encounter a number not in range(1, 10), sudoku is invalid
-        if num not in range(1, 10):
-            return False
-
-        # increment number of occurences by 1 
+        # increase occurence
         occurence_map[num] += 1
+
+        # illegal entry or too many of one number 
+        if num not in range(10) or occurence_map[num] > 1:
+            return False
     
-    # check that each number only appears once
-    return all(value == 1 or value == 0 for value in occurence_map.values())
+    # list is valid
+    return True
 
-def check_columns(board: list[list[int]]) -> bool:
+def convert_indices_to_list(board, column_index, row_index, updated_value) -> bool:
     """
-    Checks whether the given board contains valid columns or not. 
-    A valid row contains no more than 1 of each digit excluding 0.
+    Takes a sudoku board as well as the current indices and 
+    the new value to test, and checks whether it will make the board invalid.
     """
-    valid : bool = True
+    # add entry
+    board[column_index][row_index] = updated_value
 
-    # indicates what column we are currently checking
-    for current_colummn in range(1, 10):
-        # map of digit to number of occurences
-        occurence_map : dict[int, int] = {i : 0 for i in range(1, 10)}
-        
-        # go over each row to find all values in a column
-        for row in board:
-            print(row[current_colummn - 1])
-            print(occurence_map)
-            print(current_colummn)
-            # we dont care about empty spaces
-            if row[current_colummn - 1] == 0:
-                continue
+    # set row_list
+    row_list = board[column_index]
 
-            # we do not need to validate that only digits between 1 and 9 appear
-            # since we do this in check_row()
+    column_list = []
+    # set column_list
+    for i in range(9):
+        column_list.append(board[i][row_index])
 
-            # increment number of occurences by 1 
-            occurence_map[current_colummn - 1] += 1
+    # set box_index, first find box index
+    x = (column_index // 3) * 3
+    y = (row_index // 3) * 3
 
-        # check that each number only appears once
-        valid = valid and all(value == 1 or value == 0 for value in occurence_map.values())
-    
-    return valid
+    box_list = []
+    # set box_list
+    for i in range(3):
+        for j  in range(3):
+            box_list.append(board[i][j])
 
+    return is_list_valid(row_list) and (column_list) and (box_list)
 
-
-def checkBox():
-    pass
-
-def checkDiagonal():
-    pass
-
-def checkValues():
-    pass
-
-# temp main function for debugging
-def main():
-    print(check_columns(demo_board))
+def main(): 
+    solveSudoku(demo_board)
 
 main()
